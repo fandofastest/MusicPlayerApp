@@ -99,6 +99,7 @@ public class LocalFragment extends Fragment {
     public void getMusic(){
         OfflineModalClass modalClass = new OfflineModalClass();
         listoffline.clear();
+        recyclerView.removeAllViews();
 
 
         Uri allSongsUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;

@@ -12,6 +12,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
 import android.provider.Settings;
 import android.view.View;
 import android.widget.EditText;
@@ -41,6 +42,7 @@ import io.realm.Realm;
 import io.realm.RealmConfiguration;
 
 import static adapter.Topsong_RecycleView_Adapter.tredingModalClassList;
+import static android.widget.Toast.LENGTH_LONG;
 import static android.widget.Toast.LENGTH_SHORT;
 import static simplemusicuiux.musicapp.LocalFragment.listoffline;
 
@@ -50,11 +52,13 @@ public class MainActivity extends AppCompatActivity {
     RealmHelper realmHelper;
     MediaPlayer mp;
     public static int PLAYERSTATUS=0;
+    public  static  int ONLINESONG=0;
     public  static boolean LOOPINGSTATUS=false;
     public int currentpos;
     private TabAdapter adapter;
     private TabLayout tabLayout;
     private ViewPager viewPager;
+    private Handler mHandler = new Handler();
 
     List<SongModel> listrecent = new ArrayList<>();
 
@@ -98,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
         adapter = new TabAdapter(getSupportFragmentManager());
         adapter.addFragment(new TopsongFragment(), "TopSong");
         adapter.addFragment(new RecentFragment(), "Recent");
-        adapter.addFragment(new LocalFragment(), "Local Music");
+        adapter.addFragment(new LocalFragment(), "Local");
         adapter.addFragment(new PlaylistFragment(), "Playlist");
         viewPager.setAdapter(adapter);
         tabLayout.setupWithViewPager(viewPager);
@@ -143,20 +147,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
-
-
-
-
-
-
-
     }
 
 
 
     public void playmusic(int position){
 
+        ONLINESONG=1;
         mp.setLooping(LOOPINGSTATUS);
         currentpos=position;
          final SongModel modalClass = tredingModalClassList.get(position);
@@ -188,11 +185,6 @@ public class MainActivity extends AppCompatActivity {
                   }
 
 
-
-//
-
-
-
               }
           });
           PLAYERSTATUS=2;
@@ -221,8 +213,6 @@ public class MainActivity extends AppCompatActivity {
                 .add(R.id.frmid, playerFragment,"playerfragment")
                 .addToBackStack("fragment")
                 .commit();
-
-        // Media PlayerActivity
 
         mp.stop();
         mp.reset();
@@ -268,44 +258,26 @@ public class MainActivity extends AppCompatActivity {
             @SuppressLint("RestrictedApi")
             @Override
             public void onPrepared(MediaPlayer mplayer) {
-//                pDialog.hide();
-//                progressBar.setVisibility(View.GONE);
 
                 PlayerFragment fragment = (PlayerFragment) getSupportFragmentManager().findFragmentByTag("playerfragment");
-
-
                 if (mplayer.isPlaying()) {
                     mplayer.pause();
-
-
-
                     homeplay.setVisibility(View.VISIBLE);
                     homepause.setVisibility(View.GONE);
-
-
-//                    btnplay.setVisibility(View.VISIBLE);
-//                    btnstop.setVisibility(View.GONE);
-                    // Changing button image to play button
-
                 } else {
-//                    mHandler.post(mUpdateTimeTask);
                     System.out.println("cekdata" +fragment);
                     if (fragment!=null){
                         fragment.togglebuttonplay();
                         fragment.hideprogressbar();
-
                     }
 
-
                     PLAYERSTATUS=1;
-
                     mplayer.start();
                     progressBar.setVisibility(View.GONE);
                     homeplay.setVisibility(View.GONE);
                     homepause.setVisibility(View.VISIBLE);
+                    mHandler.post(mUpdateTimeTask);
 
-//                    btnplay.setVisibility(View.GONE);
-//                    btnstop.setVisibility(View.VISIBLE);
 
                 }
 
@@ -316,9 +288,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onBufferingUpdate(MediaPlayer mediaPlayer, int i) {
                 System.out.println("buffers "+i);
-
-
-
             }
         });
 
@@ -332,6 +301,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void  playmusicoffline(int position){
 
+         ONLINESONG=0;
         mp.setLooping(LOOPINGSTATUS);
         currentpos=position;
         final OfflineModalClass modalClass = listoffline.get(position);
@@ -351,13 +321,10 @@ public class MainActivity extends AppCompatActivity {
                     bundle.putString("title",modalClass.getFilename());
                     bundle.putString("status","offline");
                     bundle.putString("duration",modalClass.getDuration());
-
-
                     PlayerFragment playerFragment= new PlayerFragment();
                     playerFragment.setArguments(bundle);
                     manager.beginTransaction()
                             .replace(R.id.frmid, playerFragment,"playerfragment")
-
                             .addToBackStack("fragment")
                             .commit();
                 }
@@ -411,15 +378,11 @@ public class MainActivity extends AppCompatActivity {
             mp = new MediaPlayer();
             mp.setDataSource(this, myUri);
             mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
-//            mp.prepareAsync(); //don't use prepareAsync for mp3 playback
         } catch (Exception e) {
             Toast.makeText(getApplicationContext(), "Cannot load audio file", LENGTH_SHORT).show();
 
         }
-
-
         new CountDownTimer(5000, 1000) {
-
             public void onTick(long millisUntilFinished) {
 
             }
@@ -447,17 +410,8 @@ public class MainActivity extends AppCompatActivity {
 
                 if (mplayer.isPlaying()) {
                     mplayer.pause();
-
-
-
                     homeplay.setVisibility(View.VISIBLE);
                     homepause.setVisibility(View.GONE);
-
-
-//                    btnplay.setVisibility(View.VISIBLE);
-//                    btnstop.setVisibility(View.GONE);
-                    // Changing button image to play button
-
                 } else {
 //                    mHandler.post(mUpdateTimeTask);
                     System.out.println("cekdata" +fragment);
@@ -466,18 +420,12 @@ public class MainActivity extends AppCompatActivity {
                         fragment.hideprogressbar();
 
                     }
-
-
                     PLAYERSTATUS=1;
-
                     mplayer.start();
                     progressBar.setVisibility(View.GONE);
                     homeplay.setVisibility(View.GONE);
                     homepause.setVisibility(View.VISIBLE);
-
-//                    btnplay.setVisibility(View.GONE);
-//                    btnstop.setVisibility(View.VISIBLE);
-
+                    mHandler.post(mUpdateTimeTask);
                 }
 
             }
@@ -515,6 +463,8 @@ public class MainActivity extends AppCompatActivity {
 
     public void  pausemusic(){
         mp.pause();
+
+
         homepause.setVisibility(View.GONE);
         homeplay.setVisibility(View.VISIBLE);
 
@@ -522,21 +472,48 @@ public class MainActivity extends AppCompatActivity {
     }
     public void  resumeemusic(){
         mp.start();
+        mHandler.post(mUpdateTimeTask);
+
         homeplay.setVisibility(View.GONE);
         homepause.setVisibility(View.VISIBLE);
+
     }
 
     public void next(){
-        if (currentpos<tredingModalClassList.size())
-        playmusic(currentpos+1);
+        if (ONLINESONG==1){
+
+            if (currentpos<tredingModalClassList.size())
+                playmusic(currentpos+1);
+
+        }
+
+        else {
+
+            if (currentpos<listoffline.size())
+                playmusicoffline(currentpos+1);
+
+        }
+
+
 
 
     }
 
 
     public void previous(){
-        if (currentpos>0)
-        playmusic(currentpos-1);
+        if (ONLINESONG==1){
+
+            if (currentpos<tredingModalClassList.size())
+                playmusic(currentpos-1);
+
+        }
+
+        else {
+
+            if (currentpos<listoffline.size())
+                playmusicoffline(currentpos-1);
+
+        }
     }
     public void  showsearchdialog(){
         AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
@@ -561,7 +538,7 @@ public class MainActivity extends AppCompatActivity {
         });
         alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
-                // Canceled.
+
             }
         });
         alert.show();
@@ -578,15 +555,27 @@ public class MainActivity extends AppCompatActivity {
 
     }
     public  void addtoplaylits(){
-        realmHelper = new RealmHelper(realm,getApplication());
-        realmHelper.saveplaylists(currentsongmodel);
-        adapter.notifyDataSetChanged();
+        if (ONLINESONG==1){
+            realmHelper = new RealmHelper(realm,getApplication());
+            realmHelper.saveplaylists(currentsongmodel);
+            adapter.notifyDataSetChanged();
+            Toast.makeText(getApplicationContext(),"Added to Playlists",LENGTH_LONG).show();
+
+
+
+        }else {
+
+            Toast.makeText(getApplicationContext(),"This is Local Song",LENGTH_LONG).show();
+        }
+
 
     }
     public  void addtoplaylitssingle(SongModel songModel){
         realmHelper = new RealmHelper(realm,getApplication());
         realmHelper.saveplaylists(songModel);
         adapter.notifyDataSetChanged();
+        Toast.makeText(getApplicationContext(),"Added to Playlists",LENGTH_LONG).show();
+
 
     }
 
@@ -595,17 +584,22 @@ public class MainActivity extends AppCompatActivity {
         realmHelper = new RealmHelper(realm,getApplication());
         realmHelper.removefromplaylists(songModel);
         adapter.notifyDataSetChanged();
+        Toast.makeText(getApplicationContext(),"Remove From Playlists",LENGTH_LONG).show();
+
     }
 
     public  void removefromrecent(SongModel songModel){
         realmHelper = new RealmHelper(realm,getApplication());
         realmHelper.removefromrecent(songModel);
         adapter.notifyDataSetChanged();
+        Toast.makeText(getApplicationContext(),"Remove From Recent",LENGTH_LONG).show();
+
     }
     public  void addtorecent(){
         realmHelper = new RealmHelper(realm,getApplication());
         realmHelper.saverecent(currentsongmodel);
         adapter.notifyDataSetChanged();
+
 
     }
 
@@ -640,4 +634,40 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(getApplicationContext(),"Timer set : "+timer,Toast.LENGTH_LONG).show();
 
     }
+
+    /**
+     * Background Runnable thread
+     */
+    private Runnable mUpdateTimeTask = new Runnable() {
+        public void run() {
+            PlayerFragment fragment = (PlayerFragment) getSupportFragmentManager().findFragmentByTag("playerfragment");
+            long totalDuration = mp.getDuration();
+            long currentDuration = mp.getCurrentPosition();
+            if (fragment!=null){
+
+                fragment.updateTimerAndSeekbar(totalDuration,currentDuration);
+
+            }
+            // Running this thread after 10 milliseconds
+            if (mp.isPlaying()) {
+                mHandler.postDelayed(this, 100);
+            }
+        }
+    };
+
+    public void  updateseekbarmp(int progress){
+
+        double currentseek = ((double) progress/(double)MusicUtils.MAX_PROGRESS);
+        mp.pause();
+        int totaldura= mp.getDuration();
+        int seek= (int) (totaldura*currentseek);
+        mp.seekTo(seek);
+        mp.start();
+
+        System.out.println("sekarang : "+seek);
+//        System.out.println("sekarang pro "+progress);
+
+
+    }
+
 }

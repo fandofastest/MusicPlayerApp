@@ -25,6 +25,7 @@ import com.bumptech.glide.Glide;
 import java.util.Calendar;
 
 
+
 /**
  * A simple {@link Fragment} subclass.
  * Use the {@link PlayerFragment#newInstance} factory method to
@@ -137,18 +138,45 @@ public class PlayerFragment extends Fragment  {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        seekBar.setProgress(0);
-        seekBar.setMax(MusicUtils.MAX_PROGRESS);
+
 
         MusicUtils musicUtils = new MusicUtils();
+
+        seekBar.setProgress(0);
+
+        seekBar.setMax(MusicUtils.MAX_PROGRESS);
+
+
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar1, int progress, boolean b) {
+
+                if(b){
+
+                     seekBar.setProgress(progress);
+                    ((MainActivity)getActivity()).updateseekbarmp(progress);
+
+                }
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
 
         System.out.println(duration);
         txttotaldura.setText(musicUtils.milliSecondsToTimer(Long.parseLong(duration)));
         txttitle.setText(title);
 //        txttotaldura.setText(duration);
         txtartis.setText(artist);
-        Glide
-                .with(this)
+        Glide.with(this)
                 .load(imageurl)
                 .centerCrop()
                 .placeholder(R.mipmap.ic_launcher)
@@ -198,6 +226,7 @@ public class PlayerFragment extends Fragment  {
                 ((MainActivity)getActivity()).resumeemusic();
                 btnstop.setVisibility(View.VISIBLE);
                 btnplay.setVisibility(View.GONE);
+
             }
         });
 
@@ -267,14 +296,9 @@ public class PlayerFragment extends Fragment  {
                             long jamdetik =jamtotal*60*1000;
 
                         ((MainActivity)getActivity()).settimer(jamdetik,selectedHour + "Hours " + selectedMinute+" Minutes");
-
-
-
-
                     }
                 }, hour, minute, true);//Yes 24 hour time
                 mTimePicker.setTitle("Select Time");
-
                 mTimePicker.show();
             }
         });
@@ -337,6 +361,18 @@ public class PlayerFragment extends Fragment  {
 //    }
     public void toasfragment(){
         Toast.makeText(getContext(),"Playing Music",Toast.LENGTH_LONG).show();
+    }
+
+    void updateTimerAndSeekbar(long totalDuration, long currentDuration) {
+        // Displaying Total Duration time
+        MusicUtils utils = new MusicUtils();
+        txttotaldura.setText(utils.milliSecondsToTimer(totalDuration));
+        // Displaying time completed playing
+        txtdura.setText(utils.milliSecondsToTimer(currentDuration));
+
+        // Updating progress bar
+        int progress = (int) (utils.getProgressSeekBar(currentDuration, totalDuration));
+        seekBar.setProgress(progress);
     }
 
 
