@@ -71,7 +71,7 @@ public class RecentAdapter extends RecyclerView.Adapter<RecentAdapter.MyViewHold
             public void onClick(View v) {
 
                 if (context instanceof MainActivity) {
-                    ((MainActivity)context).playmusic(position);
+                    ((MainActivity)context).playmusic(position,tredingModalClassList);
                 }
 
                 System.out.println(position);

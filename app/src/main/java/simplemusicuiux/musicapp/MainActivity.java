@@ -23,6 +23,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.viewpager.widget.ViewPager;
 
@@ -50,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
 
     Realm realm;
     RealmHelper realmHelper;
-    MediaPlayer mp;
+    MediaPlayer mp ;
     public static int PLAYERSTATUS=0;
     public  static  int ONLINESONG=0;
     public  static boolean LOOPINGSTATUS=false;
@@ -62,7 +63,10 @@ public class MainActivity extends AppCompatActivity {
 
     List<SongModel> listrecent = new ArrayList<>();
 
-   public static SongModel currentsongmodel;
+    public static  List<SongModel> currentlistplay = new ArrayList<>();
+
+
+    public static SongModel currentsongmodel;
 
 
     ProgressBar progressBar;
@@ -151,13 +155,17 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    public void playmusic(int position){
+    public void playmusic(int position ,List<SongModel> listplay){
+        homeplayerlayout.setVisibility(View.VISIBLE);
+
 
         ONLINESONG=1;
         mp.setLooping(LOOPINGSTATUS);
         currentpos=position;
-         final SongModel modalClass = tredingModalClassList.get(position);
+        currentlistplay=listplay;
+         final SongModel modalClass = listplay.get(position);
         currentsongmodel=modalClass;
+
         progressBar.setVisibility(View.VISIBLE);
         homeplay.setVisibility(View.GONE);
         homepause.setVisibility(View.GONE);
@@ -175,19 +183,42 @@ public class MainActivity extends AppCompatActivity {
                       bundle.putString("artist",modalClass.getArtist());
                       bundle.putString("duration",modalClass.getDuration());
                       bundle.putString("imageurl",modalClass.getImageurl());
-                      PlayerFragment playerFragment= new PlayerFragment();
-                      playerFragment.setArguments(bundle);
-                      manager.beginTransaction()
-                              .replace(R.id.frmid, playerFragment,"playerfragment")
+                      try {
 
-                              .addToBackStack("fragment")
-                              .commit();
+
+
+                          PlayerFragment playerFragment = (PlayerFragment) getSupportFragmentManager().findFragmentByTag("playerfragment");
+                          playerFragment.setArguments(bundle);
+                          manager.beginTransaction()
+                                  .remove(playerFragment)
+//                    .replace(R.id.frmid, playerFragment,"playerfragment")
+                                  .addToBackStack("fragment")
+                                  .commit();
+
+
+                          PlayerFragment playerFragment1= new PlayerFragment();
+                          playerFragment1.setArguments(bundle);
+                          manager.beginTransaction()
+                                  .replace(R.id.frmid, playerFragment1,"playerfragment")
+                                  .addToBackStack("fragment")
+                                  .commit();
+                      }
+                      catch (Exception e){
+
+                          PlayerFragment playerFragment= new PlayerFragment();
+                          playerFragment.setArguments(bundle);
+                          manager.beginTransaction()
+                                  .add(R.id.frmid, playerFragment,"playerfragment")
+                                  .addToBackStack("playerfragment")
+                                  .commit();
+
+                      }
                   }
 
 
               }
           });
-          PLAYERSTATUS=2;
+
 
 
 
@@ -200,30 +231,63 @@ public class MainActivity extends AppCompatActivity {
                 .placeholder(R.mipmap.ic_launcher)
                 .into(imagehomeplayer);
 
-        final FragmentManager manager=getSupportFragmentManager();
-        Bundle  bundle= new Bundle();
-        bundle.putString("status","online");
-        bundle.putString("title",modalClass.getTitle());
-        bundle.putString("artist",modalClass.getArtist());
-        bundle.putString("duration",modalClass.getDuration());
-        bundle.putString("imageurl",modalClass.getImageurl());
-        PlayerFragment playerFragment= new PlayerFragment();
-        playerFragment.setArguments(bundle);
-        manager.beginTransaction()
-                .add(R.id.frmid, playerFragment,"playerfragment")
-                .addToBackStack("fragment")
-                .commit();
 
+
+          try {
+              final FragmentManager manager=getSupportFragmentManager();
+              Bundle  bundle= new Bundle();
+              bundle.putString("status","online");
+              bundle.putString("title",modalClass.getTitle());
+              bundle.putString("artist",modalClass.getArtist());
+              bundle.putString("duration",modalClass.getDuration());
+              bundle.putString("imageurl",modalClass.getImageurl());
+
+
+
+              PlayerFragment playerFragment = (PlayerFragment) getSupportFragmentManager().findFragmentByTag("playerfragment");
+              playerFragment.setArguments(bundle);
+              manager.beginTransaction()
+                      .remove(playerFragment)
+//                    .replace(R.id.frmid, playerFragment,"playerfragment")
+                      .addToBackStack("fragment")
+                      .commit();
+
+
+              PlayerFragment playerFragment1= new PlayerFragment();
+              playerFragment1.setArguments(bundle);
+              manager.beginTransaction()
+                      .replace(R.id.frmid, playerFragment1,"playerfragment")
+                      .addToBackStack("fragment")
+                      .commit();
+          }
+            catch (Exception e){
+
+                final FragmentManager manager=getSupportFragmentManager();
+                Bundle  bundle= new Bundle();
+                bundle.putString("status","online");
+                bundle.putString("title",modalClass.getTitle());
+                bundle.putString("artist",modalClass.getArtist());
+                bundle.putString("duration",modalClass.getDuration());
+                bundle.putString("imageurl",modalClass.getImageurl());
+                PlayerFragment playerFragment= new PlayerFragment();
+                playerFragment.setArguments(bundle);
+                manager.beginTransaction()
+                        .add(R.id.frmid, playerFragment,"playerfragment")
+                        .addToBackStack("playerfragment")
+                        .commit();
+
+            }
+
+
+
+
+
+
+        PLAYERSTATUS=2;
         mp.stop();
         mp.reset();
         mp.release();
-        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mp) {
-                mp.setLooping(LOOPINGSTATUS);
 
-            }
-        });
 
         try {
             Uri myUri = Uri.parse(Constants.SERVERMUSIC+modalClass.getId());
@@ -292,19 +356,103 @@ public class MainActivity extends AppCompatActivity {
         });
 
         mp.prepareAsync();
+        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                mp.setLooping(LOOPINGSTATUS);
+                next();
+
+            }
+        });
 
 
 
 
     }
 
+    @Override
+    protected void onResume() {
+
+        super.onResume();
+
+
+
+    }
 
     public void  playmusicoffline(int position){
+        homeplayerlayout.setVisibility(View.VISIBLE);
+        ONLINESONG=0;
 
-         ONLINESONG=0;
-        mp.setLooping(LOOPINGSTATUS);
         currentpos=position;
         final OfflineModalClass modalClass = listoffline.get(position);
+
+
+
+            final FragmentManager manager=getSupportFragmentManager();
+            Bundle  bundle= new Bundle();
+            bundle.putString("title",modalClass.getFilename());
+            bundle.putString("status","offline");
+            bundle.putString("duration",modalClass.getDuration());
+
+
+            try {
+                PlayerFragment playerFragment = (PlayerFragment) getSupportFragmentManager().findFragmentByTag("playerfragment");
+                playerFragment.setArguments(bundle);
+                manager.beginTransaction()
+                        .remove(playerFragment)
+//                    .replace(R.id.frmid, playerFragment,"playerfragment")
+                        .addToBackStack("fragment")
+                        .commit();
+
+                PlayerFragment playerFragment1= new PlayerFragment();
+                playerFragment1.setArguments(bundle);
+                manager.beginTransaction()
+                        .replace(R.id.frmid, playerFragment1,"playerfragment")
+                        .addToBackStack("fragment")
+                        .commit();
+
+
+
+            }
+            catch (Exception e){
+
+
+
+                PlayerFragment playerFragment1= new PlayerFragment();
+                playerFragment1.setArguments(bundle);
+                manager.beginTransaction()
+                        .replace(R.id.frmid, playerFragment1,"playerfragment")
+                        .addToBackStack("fragment")
+                        .commit();
+
+            }
+
+
+
+
+
+
+//        else
+//        {
+//            final FragmentManager manager=getSupportFragmentManager();
+//            Bundle  bundle= new Bundle();
+//            bundle.putString("title",modalClass.getFilename());
+//            bundle.putString("status","offline");
+//            bundle.putString("duration",modalClass.getDuration());
+//
+//
+//
+//            PlayerFragment playerFragment= new PlayerFragment();
+//            playerFragment.setArguments(bundle);
+//            manager.beginTransaction()
+//                    .replace(R.id.frmid, playerFragment,"playerfragment")
+//                    .addToBackStack(null)
+//                    .commit();
+//        }
+
+
+
+
 
         progressBar.setVisibility(View.VISIBLE);
         homeplay.setVisibility(View.GONE);
@@ -321,13 +469,40 @@ public class MainActivity extends AppCompatActivity {
                     bundle.putString("title",modalClass.getFilename());
                     bundle.putString("status","offline");
                     bundle.putString("duration",modalClass.getDuration());
-                    PlayerFragment playerFragment= new PlayerFragment();
-                    playerFragment.setArguments(bundle);
-                    manager.beginTransaction()
-                            .replace(R.id.frmid, playerFragment,"playerfragment")
-                            .addToBackStack("fragment")
-                            .commit();
+
+                    try {
+                        PlayerFragment playerFragment = (PlayerFragment) getSupportFragmentManager().findFragmentByTag("playerfragment");
+                        playerFragment.setArguments(bundle);
+                        manager.beginTransaction()
+                                .remove(playerFragment)
+//                    .replace(R.id.frmid, playerFragment,"playerfragment")
+                                .addToBackStack("fragment")
+                                .commit();
+
+                        PlayerFragment playerFragment1= new PlayerFragment();
+                        playerFragment1.setArguments(bundle);
+                        manager.beginTransaction()
+                                .replace(R.id.frmid, playerFragment1,"playerfragment")
+                                .addToBackStack("fragment")
+                                .commit();
+
+
+
+                    }
+                    catch (Exception e){
+
+
+
+                        PlayerFragment playerFragment1= new PlayerFragment();
+                        playerFragment1.setArguments(bundle);
+                        manager.beginTransaction()
+                                .replace(R.id.frmid, playerFragment1,"playerfragment")
+                                .addToBackStack("fragment")
+                                .commit();
+
+                    }
                 }
+
 
 
 
@@ -345,38 +520,20 @@ public class MainActivity extends AppCompatActivity {
         homeartist.setText(modalClass.getSize());
 
 
-        final FragmentManager manager=getSupportFragmentManager();
-        Bundle  bundle= new Bundle();
-        bundle.putString("title",modalClass.getFilename());
-        bundle.putString("status","offline");
-        bundle.putString("duration",modalClass.getDuration());
 
-
-
-        PlayerFragment playerFragment= new PlayerFragment();
-        playerFragment.setArguments(bundle);
-        manager.beginTransaction()
-                .add(R.id.frmid, playerFragment,"playerfragment")
-                .addToBackStack("fragment")
-                .commit();
 
         // Media PlayerActivity
 
         mp.stop();
         mp.reset();
         mp.release();
-        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mp) {
-                mp.setLooping(LOOPINGSTATUS);
 
-            }
-        });
 
         try {
             Uri myUri = Uri.parse(modalClass.getFilepath());
             mp = new MediaPlayer();
             mp.setDataSource(this, myUri);
+            mp.setLooping(LOOPINGSTATUS);
             mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
         } catch (Exception e) {
             Toast.makeText(getApplicationContext(), "Cannot load audio file", LENGTH_SHORT).show();
@@ -443,6 +600,15 @@ public class MainActivity extends AppCompatActivity {
 
         mp.prepareAsync();
 
+        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                mp.setLooping(LOOPINGSTATUS);
+                next();
+
+            }
+        });
+
 
 
 
@@ -482,15 +648,19 @@ public class MainActivity extends AppCompatActivity {
     public void next(){
         if (ONLINESONG==1){
 
-            if (currentpos<tredingModalClassList.size())
-                playmusic(currentpos+1);
+            if (currentpos<currentlistplay.size()){
+                playmusic(currentpos+1,currentlistplay);
+
+            }
 
         }
 
         else {
 
-            if (currentpos<listoffline.size())
+            if (currentpos<listoffline.size()){
                 playmusicoffline(currentpos+1);
+            }
+
 
         }
 
@@ -503,8 +673,8 @@ public class MainActivity extends AppCompatActivity {
     public void previous(){
         if (ONLINESONG==1){
 
-            if (currentpos<tredingModalClassList.size())
-                playmusic(currentpos-1);
+            if (currentpos<currentlistplay.size())
+                playmusic(currentpos-1,currentlistplay);
 
         }
 
@@ -516,6 +686,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     public void  showsearchdialog(){
+
+        List<Fragment> allFragments = getSupportFragmentManager().getFragments();
+        for (final Fragment fragmento: allFragments) {
+            if (fragmento instanceof TopsongFragment){
+
         AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
         alert.setTitle("Find a Song");
         alert.setMessage("Input Search Query");
@@ -526,12 +701,9 @@ public class MainActivity extends AppCompatActivity {
         alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
                 String result = input.getText().toString();
+                ((TopsongFragment) fragmento).findsongs(result);
 
-                TopsongFragment topsongFragment = (TopsongFragment) getSupportFragmentManager()
-                        .getFragments()
-                        .get(0);
 
-                topsongFragment.findsongs(result);
 
                 //do what you want with your result
             }
@@ -542,6 +714,19 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         alert.show();
+
+
+
+            }
+
+            else {
+                viewPager.setCurrentItem(0);
+
+            }
+
+
+        }
+
     }
 
     public void updatelist(){
@@ -618,6 +803,20 @@ public class MainActivity extends AppCompatActivity {
         return listrecent;
     }
 
+    public void  gototab(int tab){
+        FragmentManager manager=getSupportFragmentManager();
+
+        PlayerFragment playerFragment = (PlayerFragment) getSupportFragmentManager().findFragmentByTag("playerfragment");
+        manager.beginTransaction()
+                .remove(playerFragment)
+//                    .replace(R.id.frmid, playerFragment,"playerfragment")
+                .addToBackStack("fragment")
+                .commit();
+
+        viewPager.setCurrentItem(tab);
+
+    }
+
     public void settimer(Long end,String timer){
         new CountDownTimer(end, 1000) {
 
@@ -670,4 +869,12 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+
+
+    }
 }

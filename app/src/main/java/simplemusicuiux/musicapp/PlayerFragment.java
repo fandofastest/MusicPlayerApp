@@ -36,7 +36,7 @@ public class PlayerFragment extends Fragment  {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
-     private ImageView btnplay,btnstop,prev,next,loopingon,loopingoff,randomb,eqbutton,addtoplaylists,share;
+     private ImageView btnplay,btnstop,prev,next,loopingon,loopingoff,randomb,eqbutton,addtoplaylists,share,backarrow,playlistbutton;
      private TextView txttitle,txtartis,txtdura,txttotaldura;
       private ProgressBar progressBar;
       private SeekBar seekBar;
@@ -121,12 +121,14 @@ public class PlayerFragment extends Fragment  {
         next=view.findViewById(R.id.next);
         loopingon=view.findViewById(R.id.loopingbutton);
         loopingoff=view.findViewById(R.id.loopingbuttoff);
-        randomb =view.findViewById(R.id.randombutton);
         eqbutton=view.findViewById(R.id.eqbutton);
         addtoplaylists=view.findViewById(R.id.addtoplaylists);
         share=view.findViewById(R.id.share);
         progressBar.setVisibility(View.VISIBLE);
         timer=view.findViewById(R.id.timer);
+        backarrow=view.findViewById(R.id.backarrow);
+        playlistbutton=view.findViewById(R.id.playlists);
+
 
 
 
@@ -145,6 +147,24 @@ public class PlayerFragment extends Fragment  {
         seekBar.setProgress(0);
 
         seekBar.setMax(MusicUtils.MAX_PROGRESS);
+
+        backarrow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ((MainActivity)getActivity()).onBackPressed();
+
+
+            }
+        });
+
+        playlistbutton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                ((MainActivity)getActivity()).gototab(3);
+
+            }
+        });
 
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {

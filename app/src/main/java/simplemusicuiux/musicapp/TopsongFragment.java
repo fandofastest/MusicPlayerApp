@@ -1,11 +1,13 @@
 package simplemusicuiux.musicapp;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Typeface;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -13,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -279,6 +282,37 @@ public class TopsongFragment extends Fragment {
 
 
     }
+
+    public void  showsearchdialog(){
+        AlertDialog.Builder alert = new AlertDialog.Builder(ctx);
+        alert.setTitle("Find a Song");
+        alert.setMessage("Input Search Query");
+// Set an EditText view to get user input
+        final EditText input = new EditText(ctx);
+
+        alert.setView(input);
+        alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                String result = input.getText().toString();
+
+                findsongs(result);
+
+
+
+
+                ;
+
+                //do what you want with your result
+            }
+        });
+        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+
+            }
+        });
+        alert.show();
+    }
+
 
 
     public void findsongs(String q){

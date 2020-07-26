@@ -71,7 +71,7 @@ public void onBindViewHolder(final MyViewHolder holder, final int position){
         public void onClick(View v) {
 
             if (context instanceof MainActivity) {
-                ((MainActivity)context).playmusic(position);
+                ((MainActivity)context).playmusic(position,playlistModalClassList);
             }
 
 
