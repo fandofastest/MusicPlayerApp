@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_main_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".AlbumListActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+
+        <androidx.viewpager.widget.ViewPager
+            android:id="@+id/myviewpager"
+            android:layout_width="match_parent"
+            android:layout_height="260dp"
+            android:layout_gravity="center" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:orientation="horizontal">
+
+
+            <customfonts.MyTextView_Poppins_Regular
+                android:id="@+id/follow"
+                android:layout_width="76dp"
+                android:layout_height="25.3dp"
+                android:textSize="11.7sp"
+                android:gravity="center"
+                android:text="Follow"
+                android:textColor="@color/pink"
+                android:layout_marginRight="20.5dp"
+                android:background="@drawable/border_roundshape"/>
+            />
+
+
+            <customfonts.MyTextView_Poppins_Regular
+                android:id="@+id/playall"
+                android:layout_width="76dp"
+                android:layout_height="25.3dp"
+                android:gravity="center"
+                android:textSize="11.7sp"
+                android:textColor="#ffffff"
+                android:text="Play all"
+                android:background="@drawable/fill_roundshape"
+                />
+        </LinearLayout>
+
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="vertical">
+
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+
+
+
+
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/albumList_recycleview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="25dp"
+        android:clipToPadding="false"></androidx.recyclerview.widget.RecyclerView>
+
+    </LinearLayout>
+
+    </ScrollView>
+
+    </LinearLayout>
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:layout_marginRight="6dp"
+        android:layout_marginLeft="6dp"
+        app:cardCornerRadius="30dp"
+        android:layout_alignParentBottom="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="7.3dp"
+            android:layout_marginBottom="7.3dp"
+            android:layout_marginLeft="8.3dp"
+            android:orientation="horizontal">
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:layout_width="43.3dp"
+                android:layout_height="43.3dp"
+                android:src="@drawable/albumlist"/>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10.3dp"
+                android:layout_gravity="center"
+                android:orientation="vertical">
+
+                <customfonts.MyTextView_Poppins_Medium
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="12.7sp"
+                    android:textColor="#4f4f4f"
+                    android:layout_marginBottom="-3dp"
+                    android:text="Mercy" />
+
+                <customfonts.MyTextView_Poppins_Regular
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="11.7sp"
+                    android:textColor="#c9c9c9"
+                    android:text="Badshah" />
+
+
+            </LinearLayout>
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="14dp"
+                android:layout_gravity="center"
+                android:src="@drawable/backward"/>
+
+            <ImageView
+                android:layout_width="32.7dp"
+                android:layout_height="32.7dp"
+                android:layout_gravity="center"
+                android:layout_marginLeft="19.3dp"
+                android:layout_marginRight="19.3dp"
+                android:src="@drawable/pause"/>
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="14dp"
+                android:layout_gravity="center"
+                android:layout_marginRight="15.5dp"
+                android:src="@drawable/forward"/>
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+</RelativeLayout>

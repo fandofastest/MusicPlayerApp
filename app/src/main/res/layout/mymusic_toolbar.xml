@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.Toolbar
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#FFFFFF"
+    android:elevation="4dp">
+
+
+<RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="15dp"
+    android:layout_marginRight="15dp"
+    android:orientation="horizontal">
+
+
+
+  <ImageView
+      android:layout_width="17.5dp"
+      android:layout_height="13.5dp"
+      android:layout_centerVertical="true"
+      android:src="@drawable/menu"/>
+
+    <customfonts.MyTextView_Poppins_Medium
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="15.3sp"
+        android:layout_centerHorizontal="true"
+        android:textColor="#4f4f4f"
+        android:text="My Music"
+        />
+
+
+    <ImageView
+        android:layout_width="16dp"
+        android:layout_height="16.5dp"
+        android:layout_centerVertical="true"
+        android:layout_alignParentRight="true"
+        android:src="@drawable/search"/>
+
+
+</RelativeLayout>
+
+</androidx.appcompat.widget.Toolbar>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".TopsongFragment">
+
+
+
+
+
+    <LinearLayout
+
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_marginTop="10dp"
+
+            android:paddingBottom="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="12dp"
+            android:layout_marginRight="18dp"
+            android:orientation="horizontal">
+
+
+            <customfonts.MyTextView_Poppins_SemiBold
+                android:id="@+id/treding_singles"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="GENRE"
+                android:textAllCaps="true"
+                android:textColor="#f83d69"
+                android:textSize="15sp" />
+
+            <ImageView
+                android:layout_width="7dp"
+                android:layout_height="11.7dp"
+                android:layout_gravity="center"
+                android:src="@drawable/arrow"/>
+
+
+        </LinearLayout>
+        <androidx.recyclerview.widget.RecyclerView
+            android:layout_marginStart="15dp"
+            android:id="@+id/genre_recycleview"
+            android:clipToPadding="false"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+        </androidx.recyclerview.widget.RecyclerView>
+
+
+
+
+
+
+
+        <LinearLayout
+
+        android:paddingBottom="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="12dp"
+        android:layout_marginRight="18dp"
+        android:orientation="vertical">
+
+        <customfonts.MyTextView_Poppins_SemiBold
+            android:id="@+id/txt_titlesongs"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:text="TOP SONG"
+            android:textAllCaps="true"
+            android:textColor="#f83d69"
+            android:textSize="15sp" />
+    </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/songs_recycleview"
+            android:layout_width="match_parent"
+            android:clipToPadding="false"
+            android:layout_height="wrap_content"/>
+
+
+    </LinearLayout>
+
+</FrameLayout>

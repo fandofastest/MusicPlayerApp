@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MyMusicActivity">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+
+        <include
+            layout="@layout/mymusic_toolbar"/>
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scrollbars="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingBottom="100dp">
+
+
+
+        <customfonts.MyTextView_Poppins_SemiBold
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:textAllCaps="true"
+            android:textColor="#f83d69"
+            android:layout_marginTop="30dp"
+            android:layout_marginLeft="14.3dp"
+            android:text="OFFLINE MUSIC"
+            />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/offline_recycleview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipToPadding="false"
+            android:paddingTop="19dp"></androidx.recyclerview.widget.RecyclerView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginLeft="12dp"
+            android:layout_marginRight="18dp"
+            android:orientation="horizontal">
+
+            <customfonts.MyTextView_Poppins_SemiBold
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:textAllCaps="true"
+                android:textColor="#f83d69"
+                android:layout_height="wrap_content"
+                android:textSize="15sp"
+                android:text="FAVOURITE ARTISTS"
+                />
+
+            <ImageView
+                android:layout_width="7dp"
+                android:layout_height="11.7dp"
+                android:layout_gravity="center"
+                android:src="@drawable/arrow"/>
+
+        </LinearLayout>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/artist_recycleview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingLeft="12dp"
+            android:paddingTop="17dp"
+            android:clipToPadding="false"></androidx.recyclerview.widget.RecyclerView>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:layout_marginLeft="12dp"
+            android:layout_marginRight="18dp"
+            android:orientation="horizontal">
+
+            <customfonts.MyTextView_Poppins_SemiBold
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:textAllCaps="true"
+                android:layout_height="wrap_content"
+                android:textSize="15sp"
+                android:text="MY PLAYLISTS"
+                android:textColor="#f83d69"
+                />
+
+            <ImageView
+                android:layout_width="7dp"
+                android:layout_height="11.7dp"
+                android:layout_gravity="center"
+                android:src="@drawable/arrow"/>
+
+        </LinearLayout>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/playlist_recycleview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingLeft="12dp"
+            android:paddingTop="17dp"
+            android:clipToPadding="false"></androidx.recyclerview.widget.RecyclerView>
+
+    </LinearLayout>
+        </ScrollView>
+
+    </LinearLayout>
+
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:layout_marginRight="6dp"
+        android:layout_marginLeft="6dp"
+        app:cardCornerRadius="30dp"
+        android:layout_alignParentBottom="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="7.3dp"
+            android:layout_marginBottom="7.3dp"
+            android:layout_marginLeft="8.3dp"
+            android:orientation="horizontal">
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:layout_width="43.3dp"
+                android:layout_height="43.3dp"
+                android:src="@drawable/starboy_img"/>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10.3dp"
+                android:layout_gravity="center"
+                android:orientation="vertical">
+
+                <customfonts.MyTextView_Poppins_Medium
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="12.7sp"
+                    android:layout_marginBottom="-3dp"
+                    android:textColor="#4f4f4f"
+                    android:text="Starboy" />
+
+                <customfonts.MyTextView_Poppins_Regular
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="11.7sp"
+                    android:textColor="#c9c9c9"
+                    android:text="The Weekend" />
+
+
+            </LinearLayout>
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="14dp"
+                android:layout_gravity="center"
+                android:src="@drawable/backward"/>
+
+            <ImageView
+                android:layout_width="32.7dp"
+                android:layout_height="32.7dp"
+                android:layout_gravity="center"
+                android:layout_marginLeft="19.3dp"
+                android:layout_marginRight="19.3dp"
+                android:src="@drawable/pause"/>
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="14dp"
+                android:layout_gravity="center"
+                android:layout_marginRight="15.5dp"
+                android:src="@drawable/forward"/>
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    </RelativeLayout>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+
+    android:paddingBottom="15.5dp"
+    android:orientation="vertical">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+
+        <ImageView
+            android:id="@+id/imageview"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_marginLeft="14.3dp"
+            android:src="@drawable/albumlist" />
+
+        <LinearLayout
+            android:id="@+id/mainly"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16.3dp"
+            android:orientation="vertical">
+
+
+            <customfonts.MyTextView_Poppins_Regular
+                android:id="@+id/txttitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="13.3sp"
+                android:textColor="#4f4f4f"
+                android:text="Heartless"
+                />
+
+            <customfonts.MyTextView_Poppins_Regular
+                android:id="@+id/txtartists"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="11.7sp"
+                android:textColor="#c9c9c9"
+                android:text="Badshah ft. Astha Gill"
+                />
+
+
+
+
+
+
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/removefromplaylists"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_marginLeft="14.3dp"
+            android:src="@drawable/ic_delete_black_24dp" />
+
+
+
+
+        <customfonts.MyTextView_Poppins_Regular
+            android:id="@+id/txtduration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="21dp"
+            android:gravity="center_horizontal"
+            android:text="03:30"
+            android:textColor="#c9c9c9"
+            android:textSize="11.7sp" />
+
+    </LinearLayout>
+    
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="11dp"
+        android:layout_marginLeft="57.3dp"
+        android:layout_marginRight="28dp"
+        android:background="#f1f1f1"/>
+
+</LinearLayout>
