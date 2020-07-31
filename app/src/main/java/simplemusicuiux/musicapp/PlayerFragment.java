@@ -24,6 +24,7 @@ import com.bumptech.glide.Glide;
 
 import java.util.Calendar;
 
+import static simplemusicuiux.musicapp.MainActivity.LOOPINGSTATUS;
 
 
 /**
@@ -141,6 +142,14 @@ public class PlayerFragment extends Fragment  {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        if (LOOPINGSTATUS){
+            loopingon.setVisibility(View.VISIBLE);
+            loopingoff.setVisibility(View.GONE);
+        }else{
+            loopingoff.setVisibility(View.VISIBLE);
+            loopingon.setVisibility(View.GONE);
+        }
+
 
         MusicUtils musicUtils = new MusicUtils();
 
@@ -203,16 +212,16 @@ public class PlayerFragment extends Fragment  {
                 .into(imageView);
 
 
-        if (MainActivity.PLAYERSTATUS==1){
+        if (MainActivity.PLAYERSTATUS.equals("PLAYING")){
             togglebuttonplay();
             hideprogressbar();
 
-        }else  if (MainActivity.PLAYERSTATUS==2){
+        }else  if (MainActivity.PLAYERSTATUS.equals("LOADING")){
 
            showprogressbar();
 
         }
-        else  if (MainActivity.PLAYERSTATUS==0){
+        else  if (MainActivity.PLAYERSTATUS.equals("STOPING")){
 
             showprogressbar();
             togglebuttonpause();
@@ -282,7 +291,7 @@ public class PlayerFragment extends Fragment  {
             public void onClick(View v) {
                 loopingoff.setVisibility(View.GONE);
                 loopingon.setVisibility(View.VISIBLE);
-                MainActivity.LOOPINGSTATUS=true;
+                LOOPINGSTATUS=true;
                 Toast.makeText(getContext(),"Repeat On",Toast.LENGTH_LONG).show();
 
             }
@@ -293,7 +302,7 @@ public class PlayerFragment extends Fragment  {
             public void onClick(View v) {
                 loopingon.setVisibility(View.GONE);
                 loopingoff.setVisibility(View.VISIBLE);
-                MainActivity.LOOPINGSTATUS=false;
+                LOOPINGSTATUS=false;
                 Toast.makeText(getContext(),"Repeat Off",Toast.LENGTH_LONG).show();
             }
         });
@@ -379,9 +388,7 @@ public class PlayerFragment extends Fragment  {
 //
 //
 //    }
-    public void toasfragment(){
-        Toast.makeText(getContext(),"Playing Music",Toast.LENGTH_LONG).show();
-    }
+
 
     void updateTimerAndSeekbar(long totalDuration, long currentDuration) {
         // Displaying Total Duration time

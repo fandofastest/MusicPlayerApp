@@ -46,8 +46,8 @@ public class OfflineMusic_RecycleView_Adapter extends RecyclerView.Adapter<Offli
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
-    public void onBindViewHolder(final MyViewHolder holder, final int position){
-        final OfflineModalClass modalClass = offlineModalClassList.get(position);
+    public void onBindViewHolder(MyViewHolder holder, final int position){
+         OfflineModalClass modalClass = offlineModalClassList.get(position);
         holder.name1.setText(modalClass.getFilename());
 
 

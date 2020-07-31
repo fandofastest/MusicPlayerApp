@@ -93,11 +93,14 @@ public class LocalFragment extends Fragment {
 
 
         getMusic();
+//        OfflineModalClass modalClass = listoffline.get(1);
+//        String coba= modalClass.getFilename();
+//        System.out.println(coba);
 
     }
 
     public void getMusic(){
-        OfflineModalClass modalClass = new OfflineModalClass();
+
         listoffline.clear();
         recyclerView.removeAllViews();
 
@@ -108,13 +111,14 @@ public class LocalFragment extends Fragment {
         if (cursor != null) {
             if (cursor.moveToFirst()) {
                 do {
-
+                    OfflineModalClass modalClass = new OfflineModalClass();
                     modalClass.setFilename(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)));
                     modalClass.setFilepath(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA)));
                     modalClass.setSize(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.SIZE)));
                     modalClass.setDuration(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION)));
                     modalClass.setType("offline");
                     listoffline.add(modalClass);
+
 
 
 
@@ -125,4 +129,7 @@ public class LocalFragment extends Fragment {
 
         offlineMusic_recycleView_adapter.notifyDataSetChanged();
     }
+
+
+
 }

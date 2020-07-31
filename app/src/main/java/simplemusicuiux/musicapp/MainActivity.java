@@ -5,7 +5,11 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -25,6 +29,7 @@ import android.widget.Toast;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.viewpager.widget.ViewPager;
 
 
@@ -41,6 +46,7 @@ import adapter.TabAdapter;
 import helper.RealmHelper;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import simplemusicuiux.musicapp.service.MediaPlayerService;
 
 import static adapter.Topsong_RecycleView_Adapter.tredingModalClassList;
 import static android.widget.Toast.LENGTH_LONG;
@@ -52,19 +58,21 @@ public class MainActivity extends AppCompatActivity {
     Realm realm;
     RealmHelper realmHelper;
     MediaPlayer mp ;
-    public static int PLAYERSTATUS=0;
+    public static String PLAYERSTATUS="";
     public  static  int ONLINESONG=0;
     public  static boolean LOOPINGSTATUS=false;
     public int currentpos;
     private TabAdapter adapter;
     private TabLayout tabLayout;
     private ViewPager viewPager;
+    public  static long currentduraiton,totalduration;
+
     private Handler mHandler = new Handler();
 
     List<SongModel> listrecent = new ArrayList<>();
 
     public static  List<SongModel> currentlistplay = new ArrayList<>();
-
+    public static   boolean fromnext =false;
 
     public static SongModel currentsongmodel;
 
@@ -131,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
         homepause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mp.isPlaying()){
+                if (PLAYERSTATUS.equals("PLAYING")){
                   pausemusic();
                 }
 
@@ -151,6 +159,55 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String status = intent.getStringExtra("status");
+
+                if (status.equals("playing")){
+
+                    PlayerFragment fragment = (PlayerFragment) getSupportFragmentManager().findFragmentByTag("playerfragment");
+
+                    System.out.println("cekdata" +fragment);
+                    if (fragment!=null){
+                        fragment.togglebuttonplay();
+                        fragment.hideprogressbar();
+                    }
+
+
+                    PLAYERSTATUS="PLAYING";
+                    progressBar.setVisibility(View.GONE);
+                    homeplay.setVisibility(View.GONE);
+                    homepause.setVisibility(View.VISIBLE);
+                    mHandler.post(mUpdateTimeTask);
+
+
+
+
+                }
+                else if (status.equals("stoping")){
+
+
+                    if (LOOPINGSTATUS){
+                        repeat();
+                    }
+                    else {
+                        next();
+                    }
+
+
+
+
+
+
+
+
+                }
+
+            }
+        }, new IntentFilter("fando"));
+
     }
 
 
@@ -160,7 +217,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         ONLINESONG=1;
-        mp.setLooping(LOOPINGSTATUS);
+
         currentpos=position;
         currentlistplay=listplay;
          final SongModel modalClass = listplay.get(position);
@@ -174,8 +231,8 @@ public class MainActivity extends AppCompatActivity {
               @Override
               public void onClick(View v) {
 
-                  if (mp.isPlaying()){
-                        PLAYERSTATUS=1;
+                  if ( PLAYERSTATUS.equals("PLAYING")){
+
                       FragmentManager manager=getSupportFragmentManager();
                       Bundle  bundle= new Bundle();
                       bundle.putString("status","online");
@@ -192,7 +249,6 @@ public class MainActivity extends AppCompatActivity {
                           manager.beginTransaction()
                                   .remove(playerFragment)
 //                    .replace(R.id.frmid, playerFragment,"playerfragment")
-                                  .addToBackStack("fragment")
                                   .commit();
 
 
@@ -219,7 +275,7 @@ public class MainActivity extends AppCompatActivity {
               }
           });
 
-
+        PLAYERSTATUS="LOADING";
 
 
           hometitle.setText(modalClass.getTitle());
@@ -249,7 +305,6 @@ public class MainActivity extends AppCompatActivity {
               manager.beginTransaction()
                       .remove(playerFragment)
 //                    .replace(R.id.frmid, playerFragment,"playerfragment")
-                      .addToBackStack("fragment")
                       .commit();
 
 
@@ -283,87 +338,30 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        PLAYERSTATUS=2;
-        mp.stop();
-        mp.reset();
-        mp.release();
-
-
-        try {
-            Uri myUri = Uri.parse(Constants.SERVERMUSIC+modalClass.getId());
-            mp = new MediaPlayer();
-            mp.setDataSource(this, myUri);
-            mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
-//            mp.prepareAsync(); //don't use prepareAsync for mp3 playback
-        } catch (Exception e) {
-            Toast.makeText(getApplicationContext(), "Cannot load audio file", LENGTH_SHORT).show();
-
-        }
-
-
-        new CountDownTimer(5000, 1000) {
-
-            public void onTick(long millisUntilFinished) {
-
-            }
-
-            public void onFinish() {
-
-                if (!mp.isPlaying()){
-
-                }
-
-            }
-        }.start();
 
 
 
-        mp.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            @SuppressLint("RestrictedApi")
-            @Override
-            public void onPrepared(MediaPlayer mplayer) {
 
-                PlayerFragment fragment = (PlayerFragment) getSupportFragmentManager().findFragmentByTag("playerfragment");
-                if (mplayer.isPlaying()) {
-                    mplayer.pause();
-                    homeplay.setVisibility(View.VISIBLE);
-                    homepause.setVisibility(View.GONE);
-                } else {
-                    System.out.println("cekdata" +fragment);
-                    if (fragment!=null){
-                        fragment.togglebuttonplay();
-                        fragment.hideprogressbar();
-                    }
+        Intent plyerservice= new Intent(MainActivity.this, MediaPlayerService.class);
 
-                    PLAYERSTATUS=1;
-                    mplayer.start();
-                    progressBar.setVisibility(View.GONE);
-                    homeplay.setVisibility(View.GONE);
-                    homepause.setVisibility(View.VISIBLE);
-                    mHandler.post(mUpdateTimeTask);
+        plyerservice.putExtra("mediaurl",Constants.SERVERMUSIC+modalClass.getId());
 
 
-                }
+        startService(plyerservice);
 
-            }
-        });
 
-        mp.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
-            @Override
-            public void onBufferingUpdate(MediaPlayer mediaPlayer, int i) {
-                System.out.println("buffers "+i);
-            }
-        });
 
-        mp.prepareAsync();
-        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mp) {
-                mp.setLooping(LOOPINGSTATUS);
-                next();
 
-            }
-        });
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -380,78 +378,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void  playmusicoffline(int position){
-        homeplayerlayout.setVisibility(View.VISIBLE);
+
         ONLINESONG=0;
 
         currentpos=position;
         final OfflineModalClass modalClass = listoffline.get(position);
-
-
-
-            final FragmentManager manager=getSupportFragmentManager();
-            Bundle  bundle= new Bundle();
-            bundle.putString("title",modalClass.getFilename());
-            bundle.putString("status","offline");
-            bundle.putString("duration",modalClass.getDuration());
-
-
-            try {
-                PlayerFragment playerFragment = (PlayerFragment) getSupportFragmentManager().findFragmentByTag("playerfragment");
-                playerFragment.setArguments(bundle);
-                manager.beginTransaction()
-                        .remove(playerFragment)
-//                    .replace(R.id.frmid, playerFragment,"playerfragment")
-                        .addToBackStack("fragment")
-                        .commit();
-
-                PlayerFragment playerFragment1= new PlayerFragment();
-                playerFragment1.setArguments(bundle);
-                manager.beginTransaction()
-                        .replace(R.id.frmid, playerFragment1,"playerfragment")
-                        .addToBackStack("fragment")
-                        .commit();
-
-
-
-            }
-            catch (Exception e){
-
-
-
-                PlayerFragment playerFragment1= new PlayerFragment();
-                playerFragment1.setArguments(bundle);
-                manager.beginTransaction()
-                        .replace(R.id.frmid, playerFragment1,"playerfragment")
-                        .addToBackStack("fragment")
-                        .commit();
-
-            }
-
-
-
-
-
-
-//        else
-//        {
-//            final FragmentManager manager=getSupportFragmentManager();
-//            Bundle  bundle= new Bundle();
-//            bundle.putString("title",modalClass.getFilename());
-//            bundle.putString("status","offline");
-//            bundle.putString("duration",modalClass.getDuration());
-//
-//
-//
-//            PlayerFragment playerFragment= new PlayerFragment();
-//            playerFragment.setArguments(bundle);
-//            manager.beginTransaction()
-//                    .replace(R.id.frmid, playerFragment,"playerfragment")
-//                    .addToBackStack(null)
-//                    .commit();
-//        }
-
-
-
 
 
         progressBar.setVisibility(View.VISIBLE);
@@ -462,22 +393,21 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                if (mp.isPlaying()){
-                    PLAYERSTATUS=1;
+                if (PLAYERSTATUS.equals("PLAYING")){
+
                     FragmentManager manager=getSupportFragmentManager();
                     Bundle  bundle= new Bundle();
                     bundle.putString("title",modalClass.getFilename());
                     bundle.putString("status","offline");
                     bundle.putString("duration",modalClass.getDuration());
-
                     try {
                         PlayerFragment playerFragment = (PlayerFragment) getSupportFragmentManager().findFragmentByTag("playerfragment");
                         playerFragment.setArguments(bundle);
                         manager.beginTransaction()
                                 .remove(playerFragment)
 //                    .replace(R.id.frmid, playerFragment,"playerfragment")
-                                .addToBackStack("fragment")
                                 .commit();
+
 
                         PlayerFragment playerFragment1= new PlayerFragment();
                         playerFragment1.setArguments(bundle);
@@ -485,24 +415,38 @@ public class MainActivity extends AppCompatActivity {
                                 .replace(R.id.frmid, playerFragment1,"playerfragment")
                                 .addToBackStack("fragment")
                                 .commit();
-
-
-
                     }
-                    catch (Exception e){
-
-
-
-                        PlayerFragment playerFragment1= new PlayerFragment();
-                        playerFragment1.setArguments(bundle);
-                        manager.beginTransaction()
-                                .replace(R.id.frmid, playerFragment1,"playerfragment")
-                                .addToBackStack("fragment")
-                                .commit();
-
+                    catch (Exception e ){
+                        System.out.println(e);
                     }
                 }
 
+                else {
+
+
+                    final FragmentManager manager=getSupportFragmentManager();
+                    Bundle  bundle= new Bundle();
+                    bundle.putString("title",modalClass.getFilename());
+                    bundle.putString("status","offline");
+                    bundle.putString("duration",modalClass.getDuration());
+
+                    try {
+
+
+
+                        PlayerFragment playerFragment1= new PlayerFragment();
+                        playerFragment1.setArguments(bundle);
+                        manager.beginTransaction()
+                                .replace(R.id.frmid, playerFragment1,"playerfragment")
+                                .addToBackStack("fragment")
+                                .commit();
+                    }
+                    catch (Exception e ){
+                        System.out.println(e);
+                    }
+
+
+                }
 
 
 
@@ -512,7 +456,46 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-        PLAYERSTATUS=2;
+
+        final FragmentManager manager=getSupportFragmentManager();
+        Bundle  bundle= new Bundle();
+        bundle.putString("title",modalClass.getFilename());
+        bundle.putString("status","offline");
+        bundle.putString("duration",modalClass.getDuration());
+
+        try {
+            PlayerFragment playerFragment = (PlayerFragment) getSupportFragmentManager().findFragmentByTag("playerfragment");
+            playerFragment.setArguments(bundle);
+            manager.beginTransaction()
+                    .remove(playerFragment)
+//                    .replace(R.id.frmid, playerFragment,"playerfragment")
+                    .commit();
+
+
+            PlayerFragment playerFragment1= new PlayerFragment();
+            playerFragment1.setArguments(bundle);
+            manager.beginTransaction()
+                    .replace(R.id.frmid, playerFragment1,"playerfragment")
+                    .addToBackStack("fragment")
+                    .commit();
+        }
+        catch (Exception e ){
+
+
+            PlayerFragment playerFragment1= new PlayerFragment();
+            playerFragment1.setArguments(bundle);
+            manager.beginTransaction()
+                    .replace(R.id.frmid, playerFragment1,"playerfragment")
+                    .addToBackStack("fragment")
+                    .commit();
+            System.out.println(e);
+        }
+
+
+        Intent plyerservice= new Intent(MainActivity.this, MediaPlayerService.class);
+        plyerservice.putExtra("mediaurl",modalClass.getFilepath());
+        startService(plyerservice);
+         PLAYERSTATUS="LOADING";
 
 
 
@@ -521,99 +504,15 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
         // Media PlayerActivity
 
-        mp.stop();
-        mp.reset();
-        mp.release();
 
 
-        try {
-            Uri myUri = Uri.parse(modalClass.getFilepath());
-            mp = new MediaPlayer();
-            mp.setDataSource(this, myUri);
-            mp.setLooping(LOOPINGSTATUS);
-            mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        } catch (Exception e) {
-            Toast.makeText(getApplicationContext(), "Cannot load audio file", LENGTH_SHORT).show();
-
-        }
-        new CountDownTimer(5000, 1000) {
-            public void onTick(long millisUntilFinished) {
-
-            }
-
-            public void onFinish() {
-
-                if (!mp.isPlaying()){
-
-                }
-
-            }
-        }.start();
-
-
-
-        mp.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            @SuppressLint("RestrictedApi")
-            @Override
-            public void onPrepared(MediaPlayer mplayer) {
-//                pDialog.hide();
-//                progressBar.setVisibility(View.GONE);
-
-                PlayerFragment fragment = (PlayerFragment) getSupportFragmentManager().findFragmentByTag("playerfragment");
-
-
-                if (mplayer.isPlaying()) {
-                    mplayer.pause();
-                    homeplay.setVisibility(View.VISIBLE);
-                    homepause.setVisibility(View.GONE);
-                } else {
-//                    mHandler.post(mUpdateTimeTask);
-                    System.out.println("cekdata" +fragment);
-                    if (fragment!=null){
-                        fragment.togglebuttonplay();
-                        fragment.hideprogressbar();
-
-                    }
-                    PLAYERSTATUS=1;
-                    mplayer.start();
-                    progressBar.setVisibility(View.GONE);
-                    homeplay.setVisibility(View.GONE);
-                    homepause.setVisibility(View.VISIBLE);
-                    mHandler.post(mUpdateTimeTask);
-                }
-
-            }
-        });
-
-        mp.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
-            @Override
-            public void onBufferingUpdate(MediaPlayer mediaPlayer, int i) {
-                System.out.println("buffers "+i);
-
-
-
-            }
-        });
-
-        mp.prepareAsync();
-
-        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mp) {
-                mp.setLooping(LOOPINGSTATUS);
-                next();
-
-            }
-        });
 
 
 
 
     }
-
     public void  showeq(){
         int sessionId = mp.getAudioSessionId();
         DialogEqualizerFragment fragment = DialogEqualizerFragment.newBuilder()
@@ -628,27 +527,49 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void  pausemusic(){
-        mp.pause();
 
+        Intent intent = new Intent("fando");
+        intent.putExtra("status", "pause");
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+
+       PLAYERSTATUS="STOPING";
 
         homepause.setVisibility(View.GONE);
         homeplay.setVisibility(View.VISIBLE);
 
+        MainActivity.this.sendBroadcast(new Intent("playpause"));
+
+
 
     }
     public void  resumeemusic(){
-        mp.start();
+        Intent intent = new Intent("fando");
+        intent.putExtra("status", "resume");
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
         mHandler.post(mUpdateTimeTask);
-
+        PLAYERSTATUS="PLAYING";
         homeplay.setVisibility(View.GONE);
         homepause.setVisibility(View.VISIBLE);
+
+        progressBar.setVisibility(View.GONE);
+
+        try {
+            PlayerFragment fragment = (PlayerFragment) getSupportFragmentManager().findFragmentByTag("playerfragment");
+            fragment.togglebuttonplay();
+            fragment.hideprogressbar();
+        }
+
+        catch (Exception e){
+            System.out.println(e);
+        }
 
     }
 
     public void next(){
+        PLAYERSTATUS="LOADING";
         if (ONLINESONG==1){
 
-            if (currentpos<currentlistplay.size()){
+            if (currentpos<(currentlistplay.size()-1)){
                 playmusic(currentpos+1,currentlistplay);
 
             }
@@ -657,9 +578,29 @@ public class MainActivity extends AppCompatActivity {
 
         else {
 
-            if (currentpos<listoffline.size()){
+            if (currentpos<(listoffline.size()-1)){
                 playmusicoffline(currentpos+1);
             }
+
+
+        }
+
+
+
+
+    }
+
+
+    public void repeat(){
+        if (ONLINESONG==1){
+
+            playmusic(currentpos,currentlistplay);
+
+        }
+
+        else {
+
+            playmusicoffline(currentpos);
 
 
         }
@@ -825,7 +766,9 @@ public class MainActivity extends AppCompatActivity {
             }
 
             public void onFinish() {
-                mp.release();
+                Intent intent = new Intent("fando");
+                intent.putExtra("status", "stopmusic");
+                LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
 
             }
         }.start();
@@ -837,18 +780,18 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Background Runnable thread
      */
+
     private Runnable mUpdateTimeTask = new Runnable() {
         public void run() {
             PlayerFragment fragment = (PlayerFragment) getSupportFragmentManager().findFragmentByTag("playerfragment");
-            long totalDuration = mp.getDuration();
-            long currentDuration = mp.getCurrentPosition();
+
             if (fragment!=null){
 
-                fragment.updateTimerAndSeekbar(totalDuration,currentDuration);
+                fragment.updateTimerAndSeekbar(totalduration,currentduraiton);
 
             }
             // Running this thread after 10 milliseconds
-            if (mp.isPlaying()) {
+            if (PLAYERSTATUS.equals("PLAYING")) {
                 mHandler.postDelayed(this, 100);
             }
         }
@@ -857,11 +800,17 @@ public class MainActivity extends AppCompatActivity {
     public void  updateseekbarmp(int progress){
 
         double currentseek = ((double) progress/(double)MusicUtils.MAX_PROGRESS);
-        mp.pause();
-        int totaldura= mp.getDuration();
+
+        int totaldura= (int) totalduration;
         int seek= (int) (totaldura*currentseek);
-        mp.seekTo(seek);
-        mp.start();
+
+        Intent intent = new Intent("fando");
+        intent.putExtra("status", "seek");
+        intent.putExtra("seektime",seek);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+
+
+
 
         System.out.println("sekarang : "+seek);
 //        System.out.println("sekarang pro "+progress);
