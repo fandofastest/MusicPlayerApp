@@ -63,6 +63,10 @@ public class MediaPlayerService extends Service {
                 else if (status.equals("stopmusic")){
                     mp.release();
                 }
+                else if (status.equals("getduration")){
+                    totalduration=mp.getDuration();
+                    currentduraiton=mp.getCurrentPosition();
+                }
 
             }
         }, new IntentFilter("fando"));
@@ -104,16 +108,26 @@ public class MediaPlayerService extends Service {
             mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
 //            mp.prepareAsync(); //don't use prepareAsync for mp3 playback
 
+            mp.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+                @Override
+                public boolean onError(MediaPlayer mp, int what, int extra) {
+
+                    return true;
+                }
+            });
+
 
             mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mp1) {
-//
-//                    Intent intent = new Intent("fando");
-//                    intent.putExtra("status", "stoping");
-//                    LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
+                    System.out.println("error looping");
+
+                    Intent intent = new Intent("fando");
+                    intent.putExtra("status", "stoping");
+                    LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
 
                 }
+
 
 
             });
@@ -136,34 +150,33 @@ public class MediaPlayerService extends Service {
                         intent.putExtra("status", "playing");
                         LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
 
-                        final Handler handler = new Handler();
-                        final int delay = 100; //milliseconds
+//                        final Handler handler = new Handler();
+//                        final int delay = 100; //milliseconds
 
 
-                        if (mp.isPlaying()){
-                            handler.postDelayed(new Runnable(){
-                                public void run(){
-                                    //do something
-                                    currentduraiton=mp.getCurrentPosition();
-                                    totalduration=mp.getDuration();
-                                    handler.postDelayed(this, delay);
-                                }
-                            }, delay);
-                        }
+//                        if (mp.isPlaying()){
+//                            handler.postDelayed(new Runnable(){
+//                                public void run(){
+//                                    //do something
+//                                    currentduraiton=mp.getCurrentPosition();
+//                                    totalduration=mp.getDuration();
+//                                    handler.postDelayed(this, delay);
+//                                }
+//                            }, delay);
+//                        }
 
 
 
                     }
 
                 }
+
+
             });
 
-            mp.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
-                @Override
-                public void onBufferingUpdate(MediaPlayer mediaPlayer, int i) {
-                    System.out.println("buffers "+i);
-                }
-            });
+
+
+
 
             mp.prepareAsync();
 
@@ -177,6 +190,10 @@ public class MediaPlayerService extends Service {
 
         return START_STICKY;
     }
+
+
+
+
 
 
 

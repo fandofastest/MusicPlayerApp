@@ -1,15 +1,20 @@
 package simplemusicuiux.musicapp;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -18,23 +23,46 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.provider.Settings;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+import androidx.navigation.ui.AppBarConfiguration;
+import androidx.navigation.ui.NavigationUI;
 import androidx.viewpager.widget.ViewPager;
 
 
 import com.bullhead.equalizer.DialogEqualizerFragment;
 import com.bumptech.glide.Glide;
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.InterstitialAd;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.initialization.InitializationStatus;
+import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
 
 import java.util.ArrayList;
@@ -43,6 +71,8 @@ import java.util.List;
 import ModalClass.OfflineModalClass;
 import ModalClass.SongModel;
 import adapter.TabAdapter;
+import cn.pedant.SweetAlert.SweetAlertDialog;
+import guy4444.smartrate.SmartRate;
 import helper.RealmHelper;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -54,11 +84,14 @@ import static android.widget.Toast.LENGTH_SHORT;
 import static simplemusicuiux.musicapp.LocalFragment.listoffline;
 
 public class MainActivity extends AppCompatActivity {
-
+    private AppBarConfiguration mAppBarConfiguration;
+    InterstitialAd mInterstitialAd;
+    SweetAlertDialog pDialog;
     Realm realm;
     RealmHelper realmHelper;
     MediaPlayer mp ;
     public static String PLAYERSTATUS="";
+    public  static  int PLAYCOUNT=0;
     public  static  int ONLINESONG=0;
     public  static boolean LOOPINGSTATUS=false;
     public int currentpos;
@@ -75,6 +108,7 @@ public class MainActivity extends AppCompatActivity {
     public static   boolean fromnext =false;
 
     public static SongModel currentsongmodel;
+    private AdView mAdView;
 
 
     ProgressBar progressBar;
@@ -109,6 +143,15 @@ public class MainActivity extends AppCompatActivity {
             }
         } else {
         }
+        loadbanner();
+
+
+        SharedPreferences sharedPreferences = getSharedPreferences("push", MODE_PRIVATE);
+
+        if (sharedPreferences.getBoolean("firstTime", true)) {
+            showTermServicesDialog();
+        }
+
 
 
         adapter = new TabAdapter(getSupportFragmentManager());
@@ -208,13 +251,19 @@ public class MainActivity extends AppCompatActivity {
             }
         }, new IntentFilter("fando"));
 
+
+
+
     }
 
 
 
     public void playmusic(int position ,List<SongModel> listplay){
         homeplayerlayout.setVisibility(View.VISIBLE);
-
+        PLAYCOUNT++;
+        if (PLAYCOUNT % 5 == 0){
+            showrate();
+        }
 
         ONLINESONG=1;
 
@@ -280,14 +329,20 @@ public class MainActivity extends AppCompatActivity {
 
           hometitle.setText(modalClass.getTitle());
           homeartist.setText(modalClass.getArtist());
-        Glide
-                .with(this)
-                .load(modalClass.getImageurl())
-                .centerCrop()
-                .placeholder(R.mipmap.ic_launcher)
-                .into(imagehomeplayer);
+          try {
+              Glide
+                      .with(this)
+                      .load(modalClass.getImageurl())
+                      .centerCrop()
+                      .placeholder(R.mipmap.ic_launcher)
+                      .into(imagehomeplayer);
 
+          }
 
+        catch (Exception e){
+            System.out.println(e);
+
+        }
 
           try {
               final FragmentManager manager=getSupportFragmentManager();
@@ -378,6 +433,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void  playmusicoffline(int position){
+        PLAYCOUNT++;
+
+        if (PLAYCOUNT % 5 == 0){
+            showrate();
+        }
 
         ONLINESONG=0;
 
@@ -495,6 +555,7 @@ public class MainActivity extends AppCompatActivity {
         Intent plyerservice= new Intent(MainActivity.this, MediaPlayerService.class);
         plyerservice.putExtra("mediaurl",modalClass.getFilepath());
         startService(plyerservice);
+
          PLAYERSTATUS="LOADING";
 
 
@@ -787,6 +848,10 @@ public class MainActivity extends AppCompatActivity {
 
             if (fragment!=null){
 
+                Intent intent = new Intent("fando");
+                intent.putExtra("status", "getduration");
+                LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
+
                 fragment.updateTimerAndSeekbar(totalduration,currentduraiton);
 
             }
@@ -822,8 +887,234 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
+
+
+
+
+        PlayerFragment fragment = (PlayerFragment) getSupportFragmentManager().findFragmentByTag("playerfragment");
+
+        if ((fragment ==null)){
+
+
+
+            new AlertDialog.Builder(this)
+                    .setTitle("Really Exit?")
+                    .setMessage("Are you sure you want to exit?")
+                    .setNegativeButton(android.R.string.no, null)
+                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+
+                        public void onClick(DialogInterface arg0, int arg1) {
+                            showinter();
+                        }
+                    }).create().show();
+
+        }
+
+        else {
+            super.onBackPressed();
+        }
 
 
     }
+
+    public void loadbanner (){
+        MobileAds.initialize(this, new OnInitializationCompleteListener() {
+            @Override
+            public void onInitializationComplete(InitializationStatus initializationStatus) {
+            }
+        });
+        mAdView = findViewById(R.id.adView);
+        mAdView.setVisibility(View.GONE);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
+        mAdView.setAdListener(new AdListener() {
+            @Override
+            public void onAdLoaded() {
+                mAdView.setVisibility(View.VISIBLE);
+                // Code to be executed when an ad finishes loading.
+            }
+
+            @Override
+            public void onAdFailedToLoad(int errorCode) {
+                // Code to be executed when an ad request fails.
+            }
+
+            @Override
+            public void onAdOpened() {
+                // Code to be executed when an ad opens an overlay that
+                // covers the screen.
+            }
+
+            @Override
+            public void onAdClicked() {
+                // Code to be executed when the user clicks on an ad.
+            }
+
+            @Override
+            public void onAdLeftApplication() {
+                // Code to be executed when the user has left the app.
+            }
+
+            @Override
+            public void onAdClosed() {
+                // Code to be executed when the user is about to return
+                // to the app after tapping on an ad.
+            }
+        });
+    }
+
+    public void showrate(){
+
+        SmartRate.Rate(MainActivity.this
+                , "Rate Us"
+                , "Tell others what you think about this app"
+                , "Continue"
+                , "Please take a moment and rate us on Google Play"
+                , "click here"
+                , "Cancel"
+                , "Thanks for the feedback"
+                , Color.parseColor("#2196F3")
+                , 4
+        );
+
+    }
+
+
+
+    private void showTermServicesDialog() {
+        final Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE); // before
+        dialog.setContentView(R.layout.dialog_term_of_services);
+        dialog.setCancelable(true);
+
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+        lp.copyFrom(dialog.getWindow().getAttributes());
+        lp.width = WindowManager.LayoutParams.MATCH_PARENT;
+        lp.height = WindowManager.LayoutParams.MATCH_PARENT;
+
+        Button declineBt = dialog.findViewById(R.id.bt_decline);
+        Button acceptBt = dialog.findViewById(R.id.bt_accept);
+
+
+
+        ((ImageButton) dialog.findViewById(R.id.bt_close)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                finish();
+            }
+        });
+
+        acceptBt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SharedPreferences.Editor editor = getSharedPreferences("push", MODE_PRIVATE).edit();
+                editor.putBoolean("firstTime",false);
+                editor.apply();
+                dialog.dismiss();
+            }
+        });
+
+        declineBt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                finish();
+            }
+        });
+
+        dialog.show();
+        dialog.getWindow().setAttributes(lp);
+    }
+
+    public  void showinter() {
+        pDialog = new SweetAlertDialog(this, SweetAlertDialog.PROGRESS_TYPE);
+        pDialog.getProgressHelper().setBarColor(Color.parseColor("#A5DC86"));
+        pDialog.setTitleText("Loading Ads");
+        pDialog.setCancelable(false);
+
+        pDialog.show();
+
+
+        mInterstitialAd = new InterstitialAd(this);
+        mInterstitialAd.setAdUnitId(getString(R.string.interads));
+        mInterstitialAd.loadAd(new AdRequest.Builder().build());
+        mInterstitialAd.setAdListener(new AdListener() {
+            @Override
+            public void onAdLoaded() {
+                mInterstitialAd.show();
+                // Code to be executed when an ad finishes loading.
+            }
+
+            @Override
+            public void onAdFailedToLoad(int errorCode) {
+                pDialog.getProgressHelper().setBarColor(Color.parseColor("#A5DC86"));
+                pDialog.setTitleText("Exit Apps");
+                pDialog.setCancelable(false);
+                pDialog.show();
+
+                Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        finish();
+                        System.exit(0);
+                        finishAffinity();
+                        // change image
+                    }
+
+                }, 3000);
+                // Code to be executed when an ad request fails.
+            }
+
+            @Override
+            public void onAdOpened() {
+                // Code to be executed when the ad is displayed.
+            }
+
+            @Override
+            public void onAdClicked() {
+                // Code to be executed when the user clicks on an ad.
+            }
+
+            @Override
+            public void onAdLeftApplication() {
+                // Code to be executed when the user has left the app.
+            }
+
+            @Override
+            public void onAdClosed() {
+                pDialog.getProgressHelper().setBarColor(Color.parseColor("#A5DC86"));
+                pDialog.setTitleText("Exit Apps");
+                pDialog.setCancelable(false);
+                pDialog.show();
+
+                Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        finish();
+                        finishAffinity();
+                        System.exit(0);
+                        // change image
+                    }
+
+                }, 3000);
+
+
+
+                // Code to be executed when the interstitial ad is closed.
+            }
+        });
+
+
+    }
+
+
+
+
+
+
 }

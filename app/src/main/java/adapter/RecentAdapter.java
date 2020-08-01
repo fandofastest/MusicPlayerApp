@@ -1,6 +1,7 @@
 package adapter;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Build;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.FragmentManager;
@@ -13,19 +14,26 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.InterstitialAd;
 
 import java.util.List;
 
 import ModalClass.SongModel;
+import cn.pedant.SweetAlert.SweetAlertDialog;
 import simplemusicuiux.musicapp.MainActivity;
 import simplemusicuiux.musicapp.MusicUtils;
 import simplemusicuiux.musicapp.R;
+
 
 
 public class RecentAdapter extends RecyclerView.Adapter<RecentAdapter.MyViewHolder> {
 
     Context context;
     public static List<SongModel> tredingModalClassList;
+    InterstitialAd mInterstitialAd;
+    SweetAlertDialog pDialog;
 
 
 
@@ -70,11 +78,7 @@ public class RecentAdapter extends RecyclerView.Adapter<RecentAdapter.MyViewHold
             @Override
             public void onClick(View v) {
 
-                if (context instanceof MainActivity) {
-                    ((MainActivity)context).playmusic(position,tredingModalClassList);
-                }
-
-                System.out.println(position);
+                showinter(position);
 
             }
         });
@@ -120,6 +124,69 @@ public class RecentAdapter extends RecyclerView.Adapter<RecentAdapter.MyViewHold
 
 
         }
+
+    }
+
+    public  void showinter(final int position) {
+        pDialog = new SweetAlertDialog(context, SweetAlertDialog.PROGRESS_TYPE);
+        pDialog.getProgressHelper().setBarColor(Color.parseColor("#A5DC86"));
+        pDialog.setTitleText("Loading Ads");
+        pDialog.setCancelable(false);
+
+        pDialog.show();
+
+
+        mInterstitialAd = new InterstitialAd(context);
+        mInterstitialAd.setAdUnitId(context.getString(R.string.interads));
+        mInterstitialAd.loadAd(new AdRequest.Builder().build());
+        mInterstitialAd.setAdListener(new AdListener() {
+            @Override
+            public void onAdLoaded() {
+                mInterstitialAd.show();
+                // Code to be executed when an ad finishes loading.
+            }
+
+            @Override
+            public void onAdFailedToLoad(int errorCode) {
+                pDialog.cancel();
+                if (context instanceof MainActivity) {
+                    ((MainActivity)context).playmusic(position,tredingModalClassList);
+                }
+
+                System.out.println(position);
+                // Code to be executed when an ad request fails.
+            }
+
+            @Override
+            public void onAdOpened() {
+                // Code to be executed when the ad is displayed.
+            }
+
+            @Override
+            public void onAdClicked() {
+                // Code to be executed when the user clicks on an ad.
+            }
+
+            @Override
+            public void onAdLeftApplication() {
+                // Code to be executed when the user has left the app.
+            }
+
+            @Override
+            public void onAdClosed() {
+                pDialog.cancel();
+                if (context instanceof MainActivity) {
+                    ((MainActivity)context).playmusic(position,tredingModalClassList);
+                }
+
+                System.out.println(position);
+                // Code to be executed when the interstitial ad is closed.
+            }
+        });
+
+
+
+
 
     }
 }

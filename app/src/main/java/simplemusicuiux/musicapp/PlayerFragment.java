@@ -2,6 +2,7 @@ package simplemusicuiux.musicapp;
 
 import android.app.TimePickerDialog;
 import android.content.Intent;
+import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 
@@ -19,10 +20,19 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
-import com.bullhead.equalizer.DialogEqualizerFragment;
+
 import com.bumptech.glide.Glide;
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.InterstitialAd;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.initialization.InitializationStatus;
+import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 
 import java.util.Calendar;
+
+import cn.pedant.SweetAlert.SweetAlertDialog;
 
 import static simplemusicuiux.musicapp.MainActivity.LOOPINGSTATUS;
 
@@ -33,6 +43,8 @@ import static simplemusicuiux.musicapp.MainActivity.LOOPINGSTATUS;
  * create an instance of this fragment.
  */
 public class PlayerFragment extends Fragment  {
+    private AdView mAdView;
+
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -44,6 +56,8 @@ public class PlayerFragment extends Fragment  {
     private MediaPlayer mediaPlayer;
     private ImageView imageView,timer;
     private String title,artist,duration="0",imageurl;
+    InterstitialAd mInterstitialAd;
+    SweetAlertDialog pDialog;
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
@@ -142,6 +156,52 @@ public class PlayerFragment extends Fragment  {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        MobileAds.initialize(getContext(), new OnInitializationCompleteListener() {
+            @Override
+            public void onInitializationComplete(InitializationStatus initializationStatus) {
+            }
+        });
+        mAdView = view.findViewById(R.id.adViewplayer);
+        mAdView.setVisibility(View.GONE);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
+        mAdView.setAdListener(new AdListener() {
+            @Override
+            public void onAdLoaded() {
+                mAdView.setVisibility(View.VISIBLE);
+                // Code to be executed when an ad finishes loading.
+            }
+
+            @Override
+            public void onAdFailedToLoad(int errorCode) {
+                // Code to be executed when an ad request fails.
+            }
+
+            @Override
+            public void onAdOpened() {
+                // Code to be executed when an ad opens an overlay that
+                // covers the screen.
+            }
+
+            @Override
+            public void onAdClicked() {
+                // Code to be executed when the user clicks on an ad.
+            }
+
+            @Override
+            public void onAdLeftApplication() {
+                // Code to be executed when the user has left the app.
+            }
+
+            @Override
+            public void onAdClosed() {
+                // Code to be executed when the user is about to return
+                // to the app after tapping on an ad.
+            }
+        });
+
+
+
         if (LOOPINGSTATUS){
             loopingon.setVisibility(View.VISIBLE);
             loopingoff.setVisibility(View.GONE);
@@ -234,7 +294,7 @@ public class PlayerFragment extends Fragment  {
             @Override
             public void onClick(View v) {
                 System.out.println("showeq");
-                ((MainActivity)getActivity()).showeq();
+               showinter("eq");
 
             }
         });
@@ -311,24 +371,9 @@ public class PlayerFragment extends Fragment  {
         timer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                showinter("timer");
                 // TODO Auto-generated method stub
-                Calendar mcurrentTime = Calendar.getInstance();
-                int hour = mcurrentTime.get(Calendar.HOUR_OF_DAY);
-                int minute = mcurrentTime.get(Calendar.MINUTE);
-                TimePickerDialog mTimePicker;
-                mTimePicker = new TimePickerDialog(getContext(), new TimePickerDialog.OnTimeSetListener() {
-                    @Override
-                    public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
 
-                            int jammenit=selectedHour*60;
-                            int jamtotal=jammenit+selectedMinute;
-                            long jamdetik =jamtotal*60*1000;
-
-                        ((MainActivity)getActivity()).settimer(jamdetik,selectedHour + "Hours " + selectedMinute+" Minutes");
-                    }
-                }, hour, minute, true);//Yes 24 hour time
-                mTimePicker.setTitle("Select Time");
-                mTimePicker.show();
             }
         });
 
@@ -400,6 +445,97 @@ public class PlayerFragment extends Fragment  {
         // Updating progress bar
         int progress = (int) (utils.getProgressSeekBar(currentDuration, totalDuration));
         seekBar.setProgress(progress);
+    }
+
+    public void settimerdialog(){
+        Calendar mcurrentTime = Calendar.getInstance();
+        int hour = mcurrentTime.get(Calendar.HOUR_OF_DAY);
+        int minute = mcurrentTime.get(Calendar.MINUTE);
+        TimePickerDialog mTimePicker;
+        mTimePicker = new TimePickerDialog(getContext(), new TimePickerDialog.OnTimeSetListener() {
+            @Override
+            public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
+
+                int jammenit=selectedHour*60;
+                int jamtotal=jammenit+selectedMinute;
+                long jamdetik =jamtotal*60*1000;
+
+                ((MainActivity)getActivity()).settimer(jamdetik,selectedHour + "Hours " + selectedMinute+" Minutes");
+            }
+        }, hour, minute, true);//Yes 24 hour time
+        mTimePicker.setTitle("Select Time");
+        mTimePicker.show();
+    }
+
+
+    public  void showinter(final String from) {
+
+        pDialog = new SweetAlertDialog(getContext(), SweetAlertDialog.PROGRESS_TYPE);
+        pDialog.getProgressHelper().setBarColor(Color.parseColor("#A5DC86"));
+        pDialog.setTitleText("Loading Ads");
+        pDialog.setCancelable(false);
+        pDialog.show();
+
+        mInterstitialAd = new InterstitialAd(getContext());
+        mInterstitialAd.setAdUnitId(getString(R.string.interads));
+        mInterstitialAd.loadAd(new AdRequest.Builder().build());
+        mInterstitialAd.setAdListener(new AdListener() {
+            @Override
+            public void onAdLoaded() {
+                mInterstitialAd.show();
+                // Code to be executed when an ad finishes loading.
+            }
+
+            @Override
+            public void onAdFailedToLoad(int errorCode) {
+                pDialog.cancel();
+
+                if (from.equals("timer")){
+                    settimerdialog();
+                }
+
+                else {
+                    ((MainActivity)getActivity()).showeq();
+                }
+
+
+
+
+                // Code to be executed when an ad request fails.
+            }
+
+            @Override
+            public void onAdOpened() {
+                // Code to be executed when the ad is displayed.
+            }
+
+            @Override
+            public void onAdClicked() {
+                // Code to be executed when the user clicks on an ad.
+            }
+
+            @Override
+            public void onAdLeftApplication() {
+                // Code to be executed when the user has left the app.
+            }
+
+            @Override
+            public void onAdClosed() {
+                pDialog.cancel();
+                if (from.equals("timer")){
+                    settimerdialog();
+                }
+
+                else {
+                    ((MainActivity)getActivity()).showeq();
+                }
+
+
+                // Code to be executed when the interstitial ad is closed.
+            }
+        });
+
+
     }
 
 
